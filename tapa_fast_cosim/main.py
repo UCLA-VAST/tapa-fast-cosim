@@ -1,7 +1,8 @@
+import argparse
 import logging
 import json
+import os
 import re
-import argparse
 
 from collections import defaultdict
 from typing import *
@@ -78,11 +79,10 @@ def get_scalar_args(axi_list: List[AXI], arg_to_reg_addrs: Dict[str, List[str]])
   return [arg for arg in arg_to_reg_addrs.keys() if arg not in m_axi_args]
 
 
-def get_cosim_tb(top_name: str, top_rtl_path: str, s_axi_control_path: str, scalar_to_val: Dict[str, str]) -> str:
+def get_cosim_tb(top_name: str, s_axi_control_path: str, axi_list: List[AXI], scalar_to_val: Dict[str, str]) -> str:
   """
   generate a lightweight testbench to test the HLS RTL
   """
-  axi_list = parse_m_axi_interfaces(top_rtl_path)
   arg_to_reg_addrs = parse_register_addr(s_axi_control_path)
   scalar_args: List[str] = get_scalar_args(axi_list, arg_to_reg_addrs)
 
@@ -96,7 +96,7 @@ def get_cosim_tb(top_name: str, top_rtl_path: str, s_axi_control_path: str, scal
 
   tb += get_dut(top_name, axi_list) + '\n'
 
-  tb += get_test_signals(arg_to_reg_addrs, scalar_to_val)
+  tb += get_test_signals(arg_to_reg_addrs, scalar_to_val, axi_list)
 
   tb += get_end() + '\n'
 
@@ -108,9 +108,21 @@ if __name__ == '__main__':
   parser.add_argument('--rtl_path', type=str, required=True)
   parser.add_argument('--top_name', type=str, required=True)
   parser.add_argument('--scalar_to_val_path', type=str, required=True)
+  parser.add_argument('--tb_output_dir', type=str, required=True)
+  parser.add_argument('--axi_data_dir', type=str, required=True)
   args = parser.parse_args()
 
   scalar_to_val = json.loads(open(args.scalar_to_val_path, 'r').read())
   top_path = f'{args.rtl_path}/{args.top_name}.v'
   ctrl_path = f'{args.rtl_path}/{args.top_name}_control_s_axi.v'
-  print(get_cosim_tb(args.top_name, top_path, ctrl_path, scalar_to_val))
+  os.system(f'mkdir -p {args.tb_output_dir}')
+
+  axi_list = parse_m_axi_interfaces(top_path)
+  tb = get_cosim_tb(args.top_name, ctrl_path, axi_list, scalar_to_val)
+  open(f'{args.tb_output_dir}/tb.v', 'w').write(tb)
+
+  for axi in axi_list:
+    source_data_path = f'{args.axi_data_dir}/m_axi_{axi.name}_data.bin'
+    output_data_size = 'FIXME'
+    ram_module = get_axi_ram_module(axi.name, source_data_path, output_data_size)
+    open(f'{args.tb_output_dir}/axi_ram_{axi.name}.v', 'w').write(ram_module)
