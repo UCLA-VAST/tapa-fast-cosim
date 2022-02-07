@@ -1,14 +1,14 @@
 import os
 
 from typing import *
-from .common import AXI
+from .common import AXI, MAX_AXI_BRAM_ADDR_WIDTH
 
 
 def get_axi_ram_inst(axi_obj: AXI):
   # FIXME: test if using addr_width = 64 will cause problem in simulation
   return f'''
   parameter AXI_RAM_{axi_obj.name.upper()}_DATA_WIDTH = {axi_obj.data_width};
-  parameter AXI_RAM_{axi_obj.name.upper()}_ADDR_WIDTH = {axi_obj.addr_width};
+  parameter AXI_RAM_{axi_obj.name.upper()}_ADDR_WIDTH = {MAX_AXI_BRAM_ADDR_WIDTH};
   parameter AXI_RAM_{axi_obj.name.upper()}_STRB_WIDTH = AXI_RAM_{axi_obj.name.upper()}_DATA_WIDTH/8;
   parameter AXI_RAM_{axi_obj.name.upper()}_ID_WIDTH = 8;
   parameter AXI_RAM_{axi_obj.name.upper()}_PIPELINE_OUTPUT = 0;
@@ -50,6 +50,8 @@ def get_axi_ram_inst(axi_obj: AXI):
   wire                                                axi_{axi_obj.name}_rready;
 
   reg                                                 axi_ram_{axi_obj.name}_dump_mem; // write out the contents into binary file
+  wire [3:0]                                          axi_{axi_obj.name}_awqos; // place holder
+  wire [3:0]                                          axi_{axi_obj.name}_arqos;
 
   axi_ram_{axi_obj.name} #
   (
@@ -63,43 +65,43 @@ def get_axi_ram_inst(axi_obj: AXI):
       .clk           (ap_clk),
       .rst           (~ap_rst_n),
 
-      .s_axi_awid    (axi_{axi_obj.name.upper()}_awid    ),
-      .s_axi_awaddr  (axi_{axi_obj.name.upper()}_awaddr  ),
-      .s_axi_awlen   (axi_{axi_obj.name.upper()}_awlen   ),
-      .s_axi_awsize  (axi_{axi_obj.name.upper()}_awsize  ),
-      .s_axi_awburst (axi_{axi_obj.name.upper()}_awburst ),
-      .s_axi_awlock  (axi_{axi_obj.name.upper()}_awlock  ),
-      .s_axi_awcache (axi_{axi_obj.name.upper()}_awcache ),
-      .s_axi_awprot  (axi_{axi_obj.name.upper()}_awprot  ),
-      .s_axi_awvalid (axi_{axi_obj.name.upper()}_awvalid ),
-      .s_axi_awready (axi_{axi_obj.name.upper()}_awready ),
-      .s_axi_wdata   (axi_{axi_obj.name.upper()}_wdata   ),
-      .s_axi_wstrb   (axi_{axi_obj.name.upper()}_wstrb   ),
-      .s_axi_wlast   (axi_{axi_obj.name.upper()}_wlast   ),
-      .s_axi_wvalid  (axi_{axi_obj.name.upper()}_wvalid  ),
-      .s_axi_wready  (axi_{axi_obj.name.upper()}_wready  ),
-      .s_axi_bid     (axi_{axi_obj.name.upper()}_bid     ),
-      .s_axi_bresp   (axi_{axi_obj.name.upper()}_bresp   ),
-      .s_axi_bvalid  (axi_{axi_obj.name.upper()}_bvalid  ),
-      .s_axi_bready  (axi_{axi_obj.name.upper()}_bready  ),
-      .s_axi_arid    (axi_{axi_obj.name.upper()}_arid    ),
-      .s_axi_araddr  (axi_{axi_obj.name.upper()}_araddr  ),
-      .s_axi_arlen   (axi_{axi_obj.name.upper()}_arlen   ),
-      .s_axi_arsize  (axi_{axi_obj.name.upper()}_arsize  ),
-      .s_axi_arburst (axi_{axi_obj.name.upper()}_arburst ),
-      .s_axi_arlock  (axi_{axi_obj.name.upper()}_arlock  ),
-      .s_axi_arcache (axi_{axi_obj.name.upper()}_arcache ),
-      .s_axi_arprot  (axi_{axi_obj.name.upper()}_arprot  ),
-      .s_axi_arvalid (axi_{axi_obj.name.upper()}_arvalid ),
-      .s_axi_arready (axi_{axi_obj.name.upper()}_arready ),
-      .s_axi_rid     (axi_{axi_obj.name.upper()}_rid     ),
-      .s_axi_rdata   (axi_{axi_obj.name.upper()}_rdata   ),
-      .s_axi_rresp   (axi_{axi_obj.name.upper()}_rresp   ),
-      .s_axi_rlast   (axi_{axi_obj.name.upper()}_rlast   ),
-      .s_axi_rvalid  (axi_{axi_obj.name.upper()}_rvalid  ),
-      .s_axi_rready  (axi_{axi_obj.name.upper()}_rready  ),
+      .s_axi_awid    (axi_{axi_obj.name}_awid    ),
+      .s_axi_awaddr  (axi_{axi_obj.name}_awaddr  ),
+      .s_axi_awlen   (axi_{axi_obj.name}_awlen   ),
+      .s_axi_awsize  (axi_{axi_obj.name}_awsize  ),
+      .s_axi_awburst (axi_{axi_obj.name}_awburst ),
+      .s_axi_awlock  (axi_{axi_obj.name}_awlock  ),
+      .s_axi_awcache (axi_{axi_obj.name}_awcache ),
+      .s_axi_awprot  (axi_{axi_obj.name}_awprot  ),
+      .s_axi_awvalid (axi_{axi_obj.name}_awvalid ),
+      .s_axi_awready (axi_{axi_obj.name}_awready ),
+      .s_axi_wdata   (axi_{axi_obj.name}_wdata   ),
+      .s_axi_wstrb   (axi_{axi_obj.name}_wstrb   ),
+      .s_axi_wlast   (axi_{axi_obj.name}_wlast   ),
+      .s_axi_wvalid  (axi_{axi_obj.name}_wvalid  ),
+      .s_axi_wready  (axi_{axi_obj.name}_wready  ),
+      .s_axi_bid     (axi_{axi_obj.name}_bid     ),
+      .s_axi_bresp   (axi_{axi_obj.name}_bresp   ),
+      .s_axi_bvalid  (axi_{axi_obj.name}_bvalid  ),
+      .s_axi_bready  (axi_{axi_obj.name}_bready  ),
+      .s_axi_arid    (axi_{axi_obj.name}_arid    ),
+      .s_axi_araddr  (axi_{axi_obj.name}_araddr  ),
+      .s_axi_arlen   (axi_{axi_obj.name}_arlen   ),
+      .s_axi_arsize  (axi_{axi_obj.name}_arsize  ),
+      .s_axi_arburst (axi_{axi_obj.name}_arburst ),
+      .s_axi_arlock  (axi_{axi_obj.name}_arlock  ),
+      .s_axi_arcache (axi_{axi_obj.name}_arcache ),
+      .s_axi_arprot  (axi_{axi_obj.name}_arprot  ),
+      .s_axi_arvalid (axi_{axi_obj.name}_arvalid ),
+      .s_axi_arready (axi_{axi_obj.name}_arready ),
+      .s_axi_rid     (axi_{axi_obj.name}_rid     ),
+      .s_axi_rdata   (axi_{axi_obj.name}_rdata   ),
+      .s_axi_rresp   (axi_{axi_obj.name}_rresp   ),
+      .s_axi_rlast   (axi_{axi_obj.name}_rlast   ),
+      .s_axi_rvalid  (axi_{axi_obj.name}_rvalid  ),
+      .s_axi_rready  (axi_{axi_obj.name}_rready  ),
 
-      .dump_mem      (axi_{axi_obj.name.upper()}_dump_mem) 
+      .dump_mem      (axi_ram_{axi_obj.name}_dump_mem) 
   );
 
 '''
@@ -281,7 +283,7 @@ def get_test_signals(
       #HALF_CLOCK_PERIOD; 
   end
 
-  wire REG_MASK_32_BIT = {{32{{1\'b1}}}};
+  wire [31:0] REG_MASK_32_BIT = {{32{{1\'b1}}}};
   initial begin
     s_axi_aw_write = 1'b0; 
     s_axi_aw_din = 1'b0; 
@@ -357,9 +359,12 @@ endmodule
 '''
 
 
-def get_axi_ram_module(axi_name: str, input_data_path: str, data_size_in_byte: int):
-  if os.path.exists(input_data_path):
-    init_data = f'fp = $fopen("{input_data_path}", "rb"); $fread(mem, fp);'
+def get_axi_ram_module(axi: AXI, input_data_path: str, c_array_size: int):
+  assert c_array_size < 2**MAX_AXI_BRAM_ADDR_WIDTH, 'cosim data size too large!'
+
+  if input_data_path:
+    assert os.path.exists(input_data_path)
+    init_data = f'fp = $fopen("{input_data_path}", "rb"); read_size = $fread(mem, fp);'
   else:
     init_data = ''
 
@@ -397,12 +402,12 @@ THE SOFTWARE.
 /*
  * AXI4 RAM
  */
-module axi_ram_{axi_name} #
+module axi_ram_{axi.name} #
 (
     // Width of data bus in bits
-    parameter DATA_WIDTH = 32,
+    parameter DATA_WIDTH = {axi.data_width},
     // Width of address bus in bits
-    parameter ADDR_WIDTH = 16,
+    parameter ADDR_WIDTH = {MAX_AXI_BRAM_ADDR_WIDTH},
     // Width of wstrb (width of data bus in words)
     parameter STRB_WIDTH = (DATA_WIDTH/8),
     // Width of ID signal
@@ -461,23 +466,26 @@ parameter WORD_SIZE = DATA_WIDTH/WORD_WIDTH;
 integer i, j;
 
 reg [DATA_WIDTH-1:0] mem[(2**VALID_ADDR_WIDTH)-1:0];
-int fp;
+integer fp;
+integer read_size;
 initial begin
-  // two nested loops for smaller number of iterations per loop
-  // workaround for synthesizer complaints about large loop counts
-  for (i = 0; i < 2**VALID_ADDR_WIDTH; i = i + 2**(VALID_ADDR_WIDTH/2)) begin
-      for (j = i; j < i + 2**(VALID_ADDR_WIDTH/2); j = j + 1) begin
-          mem[j] = 0;
-      end
-  end
 
   {init_data}
+
+  if (read_size != {c_array_size} * {axi.data_width} / 8) begin
+    $display("input data has incorrect size: %d bytes, should be {c_array_size} * DATA_WIDTH / 32 bytes", read_size);
+    $finish;
+  end
 end
 
 always @* begin
   if (dump_mem) begin
     fp = $fopen("{input_data_path.replace('.bin', '_out.bin')}", "wb");
-    // FIXME: dump the mem contents to binary file    
+    for (i = 0; i < {c_array_size}; i = i + 1) begin
+      for (j = 0; j < DATA_WIDTH / 32; j = j + 1) begin
+        $fwrite(fp, "%u", (mem[i] >> (32 * j)) & {{32{{1'b1}}}} );
+      end
+    end
   end
 end
 

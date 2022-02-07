@@ -69,14 +69,9 @@ def parse_m_axi_interfaces(top_rtl_path: str) -> List[AXI]:
   name_to_addr_width = {m_axi: addr_width for addr_width, m_axi in match_addr}
   for data_width, m_axi in match_data:
     addr_width = name_to_addr_width[m_axi]
-    axi_list.append(AXI(m_axi, data_width, addr_width))
+    axi_list.append(AXI(m_axi, int(data_width)+1, int(addr_width)+1))
 
   return axi_list
-
-
-def get_scalar_args(axi_list: List[AXI], arg_to_reg_addrs: Dict[str, List[str]]):
-  m_axi_args = [axi.name for axi in axi_list]
-  return [arg for arg in arg_to_reg_addrs.keys() if arg not in m_axi_args]
 
 
 def get_cosim_tb(top_name: str, s_axi_control_path: str, axi_list: List[AXI], scalar_to_val: Dict[str, str]) -> str:
@@ -84,7 +79,6 @@ def get_cosim_tb(top_name: str, s_axi_control_path: str, axi_list: List[AXI], sc
   generate a lightweight testbench to test the HLS RTL
   """
   arg_to_reg_addrs = parse_register_addr(s_axi_control_path)
-  scalar_args: List[str] = get_scalar_args(axi_list, arg_to_reg_addrs)
 
   tb = ''
   tb += get_begin() + '\n'
@@ -106,23 +100,24 @@ def get_cosim_tb(top_name: str, s_axi_control_path: str, axi_list: List[AXI], sc
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--rtl_path', type=str, required=True)
-  parser.add_argument('--top_name', type=str, required=True)
-  parser.add_argument('--scalar_to_val_path', type=str, required=True)
+  parser.add_argument('--config_path', type=str, required=True)
   parser.add_argument('--tb_output_dir', type=str, required=True)
-  parser.add_argument('--axi_data_dir', type=str, required=True)
   args = parser.parse_args()
 
-  scalar_to_val = json.loads(open(args.scalar_to_val_path, 'r').read())
-  top_path = f'{args.rtl_path}/{args.top_name}.v'
-  ctrl_path = f'{args.rtl_path}/{args.top_name}_control_s_axi.v'
-  os.system(f'mkdir -p {args.tb_output_dir}')
+  config = json.loads(open(args.config_path, 'r').read())
+
+  top_name = config['top_name']
+  top_path = f'{args.rtl_path}/{top_name}.v'
+  ctrl_path = f'{args.rtl_path}/{top_name}_control_s_axi.v'
 
   axi_list = parse_m_axi_interfaces(top_path)
-  tb = get_cosim_tb(args.top_name, ctrl_path, axi_list, scalar_to_val)
+  tb = get_cosim_tb(top_name, ctrl_path, axi_list, config['scalar_to_val'])
+
+  os.system(f'mkdir -p {args.tb_output_dir}')
   open(f'{args.tb_output_dir}/tb.v', 'w').write(tb)
 
   for axi in axi_list:
-    source_data_path = f'{args.axi_data_dir}/m_axi_{axi.name}_data.bin'
-    output_data_size = 'FIXME'
-    ram_module = get_axi_ram_module(axi.name, source_data_path, output_data_size)
+    source_data_path = config['axi_to_data_file'].get(axi.name, '')
+    output_data_size = config['axi_to_c_array_size'][axi.name]
+    ram_module = get_axi_ram_module(axi, source_data_path, output_data_size)
     open(f'{args.tb_output_dir}/axi_ram_{axi.name}.v', 'w').write(ram_module)
