@@ -8,6 +8,7 @@ from collections import defaultdict
 from typing import *
 from .common import AXI
 from .templates import *
+from .vivado import get_vivado_tcl
 
 
 def _check_s_axi_control_format(s_axi_control_comments: List[str]):
@@ -101,6 +102,9 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--config_path', type=str, required=True)
   parser.add_argument('--tb_output_dir', type=str, required=True)
+  parser.add_argument('--launch_simulation', action='store_true')
+  parser.add_argument('--print_debug_info', action='store_true')
+  parser.add_argument('--save_waveform', action='store_true')
   args = parser.parse_args()
 
   config = json.loads(open(args.config_path, 'r').read())
@@ -113,6 +117,7 @@ if __name__ == '__main__':
   axi_list = parse_m_axi_interfaces(top_path)
   tb = get_cosim_tb(top_name, ctrl_path, axi_list, config['scalar_to_val'])
 
+  # generate test bench RTL files
   os.system(f'mkdir -p {args.tb_output_dir}')
   open(f'{args.tb_output_dir}/tb.v', 'w').write(tb)
 
@@ -121,3 +126,15 @@ if __name__ == '__main__':
     c_array_size = config['axi_to_c_array_size'][axi.name]
     ram_module = get_axi_ram_module(axi, source_data_path, c_array_size)
     open(f'{args.tb_output_dir}/axi_ram_{axi.name}.v', 'w').write(ram_module)
+  
+  # generate vivado script
+  os.system(f'mkdir -p {args.tb_output_dir}/run')
+  vivado_script = get_vivado_tcl(rtl_path, args.tb_output_dir, args.save_waveform)
+  if args.save_waveform:
+    logging.warning(f'Waveform will be saved at {args.tb_output_dir}/run/vivado/tapa-fast-cosim/tapa-fast-cosim.sim/sim_1/behav/xsim/wave.wdb')
+  open(f'{args.tb_output_dir}/run/run_cosim.tcl', 'w').write('\n'.join(vivado_script))
+
+  # lanuch simulation
+  disable_debug = '' if args.print_debug_info else ' | grep -v DEBUG'
+  if args.launch_simulation:
+    os.system(f'cd {args.tb_output_dir}/run/; vivado -mode batch -source run_cosim.tcl {disable_debug}')
