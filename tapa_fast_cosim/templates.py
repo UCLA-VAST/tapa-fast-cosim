@@ -364,9 +364,6 @@ def get_axi_ram_module(axi: AXI, input_data_path: str, c_array_size: int):
 
   if input_data_path:
     assert os.path.exists(input_data_path)
-    init_data = f'fp = $fopen("{input_data_path}", "rb"); read_size = $fread(mem, fp);'
-  else:
-    init_data = ''
 
   return f'''
 /*
@@ -463,27 +460,29 @@ parameter WORD_SIZE = DATA_WIDTH/WORD_WIDTH;
 
 //////////////////////////////////////////////////////////////////////
 
-integer i, j;
-
 reg [DATA_WIDTH-1:0] mem[(2**VALID_ADDR_WIDTH)-1:0];
 integer fp;
 integer read_size;
+reg [7:0] temp;
+
+integer i_rd, i_wr;
 initial begin
-
-  {init_data}
-
-  if (read_size != {c_array_size} * {axi.data_width} / 8) begin
-    $display("input data has incorrect size: %d bytes, should be {c_array_size} * DATA_WIDTH / 32 bytes", read_size);
-    $finish;
+  fp = $fopen("{input_data_path}", "rb");
+  for (i_rd = 0; i_rd < {c_array_size} ; i_rd = i_rd + 1) begin
+    for (j_rd = 0; j_rd < DATA_WIDTH / 8; j_rd = j_rd + 1) begin
+      $fread(temp, fp);
+      mem[i_rd][j_rd*8 +: 8] = temp;
+    end
   end
 end
 
+integer j_rd, j_wr;
 always @* begin
   if (dump_mem) begin
     fp = $fopen("{input_data_path.replace('.bin', '_out.bin')}", "wb");
-    for (i = 0; i < {c_array_size}; i = i + 1) begin
-      for (j = 0; j < DATA_WIDTH / 32; j = j + 1) begin
-        $fwrite(fp, "%u", (mem[i] >> (32 * j)) & {{32{{1'b1}}}} );
+    for (i_wr = 0; i_wr < {c_array_size}; i_wr = i_wr + 1) begin
+      for (j_wr = 0; j_wr < DATA_WIDTH / 8; j_wr = j_wr + 1) begin
+        $fwrite(fp, "%u", mem[i_wr][j_wr * 8 +: 8] );
       end
     end
   end
@@ -638,6 +637,7 @@ always @* begin
     endcase
 end
 
+integer i;
 always @(posedge clk) begin
     write_state_reg <= write_state_next;
 

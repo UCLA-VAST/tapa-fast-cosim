@@ -99,7 +99,6 @@ def get_cosim_tb(top_name: str, s_axi_control_path: str, axi_list: List[AXI], sc
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
-  parser.add_argument('--rtl_path', type=str, required=True)
   parser.add_argument('--config_path', type=str, required=True)
   parser.add_argument('--tb_output_dir', type=str, required=True)
   args = parser.parse_args()
@@ -107,8 +106,9 @@ if __name__ == '__main__':
   config = json.loads(open(args.config_path, 'r').read())
 
   top_name = config['top_name']
-  top_path = f'{args.rtl_path}/{top_name}.v'
-  ctrl_path = f'{args.rtl_path}/{top_name}_control_s_axi.v'
+  rtl_path = config['rtl_path']
+  top_path = f'{rtl_path}/{top_name}.v'
+  ctrl_path = f'{rtl_path}/{top_name}_control_s_axi.v'
 
   axi_list = parse_m_axi_interfaces(top_path)
   tb = get_cosim_tb(top_name, ctrl_path, axi_list, config['scalar_to_val'])
