@@ -117,7 +117,7 @@ if __name__ == '__main__':
   open(f'{args.tb_output_dir}/tb.v', 'w').write(tb)
 
   for axi in axi_list:
-    source_data_path = config['axi_to_data_file'].get(axi.name, '')
-    output_data_size = config['axi_to_c_array_size'][axi.name]
-    ram_module = get_axi_ram_module(axi, source_data_path, output_data_size)
+    source_data_path = config['axi_to_data_file'][axi.name]
+    c_array_size = config['axi_to_c_array_size'][axi.name]
+    ram_module = get_axi_ram_module(axi, source_data_path, c_array_size)
     open(f'{args.tb_output_dir}/axi_ram_{axi.name}.v', 'w').write(ram_module)

@@ -465,7 +465,7 @@ integer fp;
 integer read_size;
 reg [7:0] temp;
 
-integer i_rd, i_wr;
+integer i_rd, j_rd;
 initial begin
   fp = $fopen("{input_data_path}", "rb");
   for (i_rd = 0; i_rd < {c_array_size} ; i_rd = i_rd + 1) begin
@@ -476,13 +476,13 @@ initial begin
   end
 end
 
-integer j_rd, j_wr;
+integer i_wr, j_wr;
 always @* begin
   if (dump_mem) begin
     fp = $fopen("{input_data_path.replace('.bin', '_out.bin')}", "wb");
     for (i_wr = 0; i_wr < {c_array_size}; i_wr = i_wr + 1) begin
       for (j_wr = 0; j_wr < DATA_WIDTH / 8; j_wr = j_wr + 1) begin
-        $fwrite(fp, "%u", mem[i_wr][j_wr * 8 +: 8] );
+        $fwrite(fp, "%c", mem[i_wr][j_wr * 8 +: 8] );
       end
     end
   end
