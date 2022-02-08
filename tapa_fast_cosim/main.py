@@ -111,6 +111,18 @@ def _update_relative_path(config, config_path):
       config['axi_to_data_file'][axi_name] = f'{config_dir}/{curr_path}'
 
 
+def _data_size_check(axi_to_c_array_size):
+  """
+  The AXI memory model used is hard coded to have an address width of 16 bits
+  Using more memory is not encouraged but possible.
+  """
+  for axi, c_array_size in axi_to_c_array_size.items():
+    if c_array_size > 2 ** MAX_AXI_BRAM_ADDR_WIDTH:
+      logging.critical(f'Data size of {axi} is over 1 million. Consider using smaller testsets.')
+      logging.critical(f'If you insist, increase the value of tapa_fast_cosim/common/MAX_AXI_BRAM_ADDR_WIDTH. Doing so may affect waveform dumping.')
+      exit
+
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--config_path', type=str, required=True)
@@ -122,6 +134,7 @@ if __name__ == '__main__':
 
   config = json.loads(open(args.config_path, 'r').read())
   _update_relative_path(config, args.config_path)
+  _data_size_check(config['axi_to_c_array_size'])
 
   top_name = config['top_name']
   rtl_path = config['rtl_path']
