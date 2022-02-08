@@ -4,24 +4,25 @@ Sample config file:
 
 ```json
 {
-  "top_name": "VecAdd",
-  "rtl_path": "[some_path]/hdl",
+  "xo_path": "./vadd.xo",
   "scalar_to_val": {
-    "n": 1000
+    "3": 1000
   },
   "axi_to_c_array_size": {
-    "a": 1000,
-    "b": 1000,
-    "c": 1000
+    "0": 1000,
+    "1": 1000,
+    "2": 1000
   },
   "axi_to_data_file": {
-    "a": "[some_path]/m_axi_a_data.bin",
-    "b": "[some_path]/m_axi_b_data.bin",
-    "c": "[some_path]/m_axi_c_data.bin"
+    "0": "./binary_data/m_axi_0_data.bin",
+    "1": "./binary_data/m_axi_1_data.bin",
+    "2": "./binary_data/m_axi_2_data.bin"
   }
 }
 ```
-- "scalar_to_val": the value of each scalar argument
+- All argument names are replaced by its index, i.e. position in the function signature
+
+- "scalar_to_val": the value of each scalar argument.
 
 - "axi_to_c_array_size": size of the array in the C/C++ host
 
