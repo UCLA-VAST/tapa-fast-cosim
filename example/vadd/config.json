@@ -1,0 +1,17 @@
+{
+  "top_name": "VecAdd",
+  "rtl_path": "./tapa-hdl",
+  "scalar_to_val": {
+    "n": 1000
+  },
+  "axi_to_c_array_size": {
+    "a": 1000,
+    "b": 1000,
+    "c": 1000
+  },
+  "axi_to_data_file": {
+    "a": "./binary_data/m_axi_a_data.bin",
+    "b": "./binary_data/m_axi_b_data.bin",
+    "c": "./binary_data/m_axi_c_data.bin"
+  }
+}

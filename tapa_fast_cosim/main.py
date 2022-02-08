@@ -98,6 +98,19 @@ def get_cosim_tb(top_name: str, s_axi_control_path: str, axi_list: List[AXI], sc
   return tb
 
 
+def _update_relative_path(config, config_path):
+  """ convert the relative path in the config file """
+  config_dir = '/'.join(config_path.split('/')[:-1])
+
+  curr_path = config['rtl_path']
+  if not curr_path.startswith('/') and not curr_path.startswith('~'):
+    config['rtl_path'] = f'{config_dir}/{curr_path}'
+
+  for axi_name, curr_path in config['axi_to_data_file'].items():
+    if not curr_path.startswith('/') and not curr_path.startswith('~'):
+      config['axi_to_data_file'][axi_name] = f'{config_dir}/{curr_path}'
+
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--config_path', type=str, required=True)
@@ -108,6 +121,7 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
   config = json.loads(open(args.config_path, 'r').read())
+  _update_relative_path(config, args.config_path)
 
   top_name = config['top_name']
   rtl_path = config['rtl_path']
@@ -129,9 +143,12 @@ if __name__ == '__main__':
   
   # generate vivado script
   os.system(f'mkdir -p {args.tb_output_dir}/run')
-  vivado_script = get_vivado_tcl(rtl_path, args.tb_output_dir, args.save_waveform)
   if args.save_waveform:
     logging.warning(f'Waveform will be saved at {args.tb_output_dir}/run/vivado/tapa-fast-cosim/tapa-fast-cosim.sim/sim_1/behav/xsim/wave.wdb')
+  else:
+    logging.warning(f'Waveform is not saved')
+  vivado_script = get_vivado_tcl(rtl_path, args.tb_output_dir, args.save_waveform)
+
   open(f'{args.tb_output_dir}/run/run_cosim.tcl', 'w').write('\n'.join(vivado_script))
 
   # lanuch simulation
