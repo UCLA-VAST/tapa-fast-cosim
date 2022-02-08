@@ -6,12 +6,18 @@ def get_vivado_tcl(tapa_hdl_path: str, tb_rtl_path: str, save_waveform: bool):
 
   # read in the original RTLs by HLS
   script.append(f'set ORIG_RTL_PATH "{tapa_hdl_path}"') 
-  script.append(r'set orig_rtl_files [glob ${ORIG_RTL_PATH}/*.v]') 
-  script.append(r'add_files -norecurse -scan_for_includes ${orig_rtl_files}')
+  script.append(r'set rtl_files [glob ${ORIG_RTL_PATH}/*.v]') 
+  script.append(r'add_files -norecurse -scan_for_includes ${rtl_files}')
 
   # instantiate IPs used in the RTL. Use "-nocomplain" in case no IP is used
-  script.append(r'set orig_ip_files [glob -nocomplain ${ORIG_RTL_PATH}/*.tcl]') 
-  script.append(r'foreach ip_tcl ${orig_ip_files} { source ${ip_tcl} }')
+  script.append(r'set tcl_files [glob -nocomplain ${ORIG_RTL_PATH}/*.tcl]') 
+  script.append(r'foreach ip_tcl ${tcl_files} { source ${ip_tcl} }')
+
+  # instantiate IPs used in the RTL. Use "-nocomplain" in case no IP is used
+  script.append(r'set xci_ip_files [glob -nocomplain ${ORIG_RTL_PATH}/*/*.xci]') 
+  script.append( 'if {$xci_ip_files ne ""} {add_files -norecurse -scan_for_includes ${xci_ip_files} }')
+  script.append(r'set xci_ip_files [glob -nocomplain ${ORIG_RTL_PATH}/*.xci]') 
+  script.append( 'if {$xci_ip_files ne ""} {add_files -norecurse -scan_for_includes ${xci_ip_files} }')
 
   # read in tb files
   script.append(f'set tb_files [glob {tb_rtl_path}/*.v]')
