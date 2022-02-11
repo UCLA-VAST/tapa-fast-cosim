@@ -64,8 +64,8 @@ def parse_m_axi_interfaces(top_rtl_path: str) -> List[AXI]:
   """
   top_rtl = open(top_rtl_path, 'r').read()
 
-  match_addr = re.findall(r'output\s+\[(\d+):0\]\s+m_axi_(\w+)_ARADDR\s*;', top_rtl)
-  match_data = re.findall(r'output\s+\[(\d+):0\]\s+m_axi_(\w+)_WDATA\s*;', top_rtl)
+  match_addr = re.findall(r'output\s+\[(\d+):0\]\s+m_axi_(\w+)_ARADDR\s*[;,]', top_rtl)
+  match_data = re.findall(r'output\s+\[(\d+):0\]\s+m_axi_(\w+)_WDATA\s*[;,]', top_rtl)
 
   axi_list = []
   name_to_addr_width = {m_axi: addr_width for addr_width, m_axi in match_addr}
