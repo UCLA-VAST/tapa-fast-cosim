@@ -11,6 +11,8 @@ from .templates import *
 from .vivado import get_vivado_tcl
 from .config_preprocess import preprocess_config
 
+logging.getLogger().setLevel(logging.INFO)
+
 
 def _check_s_axi_control_format(s_axi_control_comments: List[str]):
   """
@@ -150,5 +152,8 @@ if __name__ == '__main__':
 
   # lanuch simulation
   disable_debug = '' if args.print_debug_info else ' | grep -v DEBUG'
+  command = f'cd {args.tb_output_dir}/run/; vivado -mode batch -source run_cosim.tcl {disable_debug}'
   if args.launch_simulation:
-    os.system(f'cd {args.tb_output_dir}/run/; vivado -mode batch -source run_cosim.tcl {disable_debug}')
+    logging.info(f'Vivado command: {command}')
+    logging.info(f'Starting Vivado...')
+    os.system(command)

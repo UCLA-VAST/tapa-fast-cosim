@@ -11,7 +11,7 @@ def get_vivado_tcl(config: Dict, tb_rtl_path: str, save_waveform: bool):
   script.append(f'set ORIG_RTL_PATH "{tapa_hdl_path}"')
 
   for suffix in ('.v', '.sv'):
-    script.append(f'set rtl_files [glob ${{ORIG_RTL_PATH}}/*{suffix}]') 
+    script.append(f'set rtl_files [glob -nocomplain ${{ORIG_RTL_PATH}}/*{suffix}]') 
     script.append(f'if {{$rtl_files ne ""}} {{add_files -norecurse -scan_for_includes ${{rtl_files}} }}')
 
   # instantiate IPs used in the RTL. Use "-nocomplain" in case no IP is used
