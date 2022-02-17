@@ -68,12 +68,10 @@ def _parse_xo_update_config(config: Dict) -> None:
     config[entry] = change_id_to_name(config[entry])
 
 
-def _parse_scalar_val(config: Dict) -> None:
-  """
-  convert the bit representation of scalar values
-  """
-  get_verilog_val = lambda raw: "'h" + bytes(raw[::-1], 'utf-8').hex()
-  config['scalar_to_val'] = {scalar: get_verilog_val(raw) for scalar, raw in config['scalar_to_val'].items()}
+def _check_scalar_val_format(config: Dict) -> None:
+  for scalar, val in config['scalar_to_val'].items():
+    assert val.startswith("'h"), f'scalar value should be written in hex format, lsb on the right, with the suffix \'h according to Verilog syntax. Violation: {scalar}: {val}'
+    assert len(val) <= 2 + 16, f'scalar value should be at most 64 bit. Violation: {scalar}: {val}'
 
 
 def preprocess_config(config_path: str) -> Dict:
@@ -81,6 +79,6 @@ def preprocess_config(config_path: str) -> Dict:
   _update_relative_path(config, config_path)
   _data_size_check(config['axi_to_c_array_size'])
   _parse_xo_update_config(config)
-  _parse_scalar_val(config)
+  _check_scalar_val_format(config)
 
   return config
