@@ -1,13 +1,18 @@
+from typing import *
 
-def get_vivado_tcl(tapa_hdl_path: str, tb_rtl_path: str, save_waveform: bool):
+
+def get_vivado_tcl(config: Dict, tb_rtl_path: str, save_waveform: bool):
+  tapa_hdl_path = config['verilog_path']
+
   script = []
-
   script.append(f'create_project -force tapa-fast-cosim ./vivado -part xc7vx485tffg1157-1')
 
   # read in the original RTLs by HLS
-  script.append(f'set ORIG_RTL_PATH "{tapa_hdl_path}"') 
-  script.append(r'set rtl_files [glob ${ORIG_RTL_PATH}/*.v]') 
-  script.append(r'add_files -norecurse -scan_for_includes ${rtl_files}')
+  script.append(f'set ORIG_RTL_PATH "{tapa_hdl_path}"')
+
+  for suffix in ('.v', '.sv'):
+    script.append(f'set rtl_files [glob ${{ORIG_RTL_PATH}}/*{suffix}]') 
+    script.append(f'if {{$rtl_files ne ""}} {{add_files -norecurse -scan_for_includes ${{rtl_files}} }}')
 
   # instantiate IPs used in the RTL. Use "-nocomplain" in case no IP is used
   script.append(r'set tcl_files [glob -nocomplain ${ORIG_RTL_PATH}/*.tcl]') 

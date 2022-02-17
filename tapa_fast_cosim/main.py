@@ -64,15 +64,24 @@ def parse_m_axi_interfaces(top_rtl_path: str) -> List[AXI]:
   """
   top_rtl = open(top_rtl_path, 'r').read()
 
-  match_addr = re.findall(r'output\s+\[(\d+):0\]\s+m_axi_(\w+)_ARADDR\s*[;,]', top_rtl)
-  match_data = re.findall(r'output\s+\[(\d+):0\]\s+m_axi_(\w+)_WDATA\s*[;,]', top_rtl)
+  match_addr = re.findall(r'output\s+\[(.*):\s*0\s*\]\s+m_axi_(\w+)_ARADDR\s*[;,]', top_rtl)
+  match_data = re.findall(r'output\s+\[(.*):\s*0\s*\]\s+m_axi_(\w+)_WDATA\s*[;,]', top_rtl)
+
+  # the width may contain parameters
+  params = re.findall(r'parameter\s+(\S+)\s*=\s+(\S+)\s*;', top_rtl)
+  param_to_value = {name: val for name, val in params}
 
   axi_list = []
   name_to_addr_width = {m_axi: addr_width for addr_width, m_axi in match_addr}
   for data_width, m_axi in match_data:
     addr_width = name_to_addr_width[m_axi]
-    axi_list.append(AXI(m_axi, int(data_width)+1, int(addr_width)+1))
 
+    # substitute the parameters
+    for name, val in param_to_value.items():
+      data_width = data_width.replace(name, val)
+      addr_width = addr_width.replace(name, val)
+
+    axi_list.append(AXI(m_axi, eval(data_width)+1, eval(addr_width)+1))
   return axi_list
 
 
@@ -111,9 +120,9 @@ if __name__ == '__main__':
   config = preprocess_config(args.config_path)
   
   top_name = config['top_name']
-  rtl_path = config['rtl_path']
-  top_path = f'{rtl_path}/{top_name}.v'
-  ctrl_path = f'{rtl_path}/{top_name}_control_s_axi.v'
+  verilog_path = config['verilog_path']
+  top_path = f'{verilog_path}/{top_name}.v'
+  ctrl_path = f'{verilog_path}/{top_name}_control_s_axi.v'
 
   axi_list = parse_m_axi_interfaces(top_path)
   tb = get_cosim_tb(top_name, ctrl_path, axi_list, config['scalar_to_val'])
@@ -134,7 +143,8 @@ if __name__ == '__main__':
     logging.warning(f'Waveform will be saved at {args.tb_output_dir}/run/vivado/tapa-fast-cosim/tapa-fast-cosim.sim/sim_1/behav/xsim/wave.wdb')
   else:
     logging.warning(f'Waveform is not saved. Use --save_waveform to save the simulation waveform.')
-  vivado_script = get_vivado_tcl(rtl_path, args.tb_output_dir, args.save_waveform)
+
+  vivado_script = get_vivado_tcl(config, args.tb_output_dir, args.save_waveform)
 
   open(f'{args.tb_output_dir}/run/run_cosim.tcl', 'w').write('\n'.join(vivado_script))
 

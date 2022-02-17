@@ -34,20 +34,31 @@ def _data_size_check(axi_to_c_array_size):
 
 
 def _parse_xo_update_config(config: Dict) -> None:
+  """
+  Only supports TAPA xo. Vitis XO has different hierarchy and RTL coding style
+  """
   xo_path = config['xo_path']
 
-  os.system('rm -rf /tmp/tapa_fast_cosim/')
-  os.system('mkdir -p /tmp/tapa_fast_cosim/')
-  os.system(f'cp {xo_path} /tmp/tapa_fast_cosim/target.xo')
-  os.system(f'unzip -q /tmp/tapa_fast_cosim/target.xo -d /tmp/tapa_fast_cosim/')
+  tmp_path = f'/tmp/tapa_fast_cosim_{os.getuid()}/'
+  os.system(f'rm -rf {tmp_path}/')
+  os.system(f'mkdir -p {tmp_path}/')
+  os.system(f'cp {xo_path} {tmp_path}/target.xo')
+  os.system(f'unzip -q {tmp_path}/target.xo -d {tmp_path}/')
 
-  config['rtl_path'] = glob.glob('/tmp/tapa_fast_cosim/ip_repo/*/src')[0]
+  # only supports tapa xo
+  try:
+    config['verilog_path'] = glob.glob(f'{tmp_path}/ip_repo/*/src')[0]
+  except:
+    logging.error(f'Fail to extract the xo. Please provide a correct TAPA XO. Note that Vitis XOs are not supported')
+    exit(1)
 
-  kernel_file_path = glob.glob('/tmp/tapa_fast_cosim/*/kernel.xml')[0]
+  # extract other kernel information
+  kernel_file_path = glob.glob(f'{tmp_path}/*/kernel.xml')[0]
   kernel_file = open(kernel_file_path, 'r').read()
 
   config['top_name'] = re.search(r'kernel name="(\w+)"', kernel_file).group(1)
 
+  # convert argument index in the config file to actual names
   arg_name_id_pair_list = re.findall(r'arg name="(\w+)" addressQualifier="\d" id="(\d+)"', kernel_file)
   id_to_name: Dict[int, str] = {int(id): name for name, id in arg_name_id_pair_list}
 
