@@ -109,7 +109,7 @@ def get_axi_ram_inst(axi_obj: AXI):
 def get_s_axi_control():
   return f'''
   parameter C_S_AXI_CONTROL_DATA_WIDTH = 32;
-  parameter C_S_AXI_CONTROL_ADDR_WIDTH = 6;
+  parameter C_S_AXI_CONTROL_ADDR_WIDTH = 64;
   parameter C_S_AXI_DATA_WIDTH = 32;
   parameter C_S_AXI_CONTROL_WSTRB_WIDTH = 32 / 8;
   parameter C_S_AXI_WSTRB_WIDTH = 32 / 8;
