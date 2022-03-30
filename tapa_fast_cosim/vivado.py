@@ -26,6 +26,9 @@ def get_vivado_tcl(config: Dict, tb_rtl_path: str, save_waveform: bool):
   script.append(r'set xci_ip_files [glob -nocomplain ${ORIG_RTL_PATH}/*.xci]') 
   script.append( 'if {$xci_ip_files ne ""} {add_files -norecurse -scan_for_includes ${xci_ip_files} }')
 
+  # IPs may be locked due to version mismatch
+  script.append( 'upgrade_ip -quiet [get_ips *]')
+
   # read in tb files
   script.append(f'set tb_files [glob {tb_rtl_path}/*.v]')
   script.append(r'set_property SOURCE_SET sources_1 [get_filesets sim_1]')
