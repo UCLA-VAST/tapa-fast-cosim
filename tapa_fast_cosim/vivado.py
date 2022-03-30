@@ -17,7 +17,7 @@ def get_vivado_tcl(config: Dict, tb_rtl_path: str, save_waveform: bool):
 
   # instantiate IPs used in the RTL. Use "-nocomplain" in case no IP is used
   for loc in (r'${ORIG_RTL_PATH}/*.tcl', r'${ORIG_RTL_PATH}/*/*.tcl'):
-    script.append(r'set tcl_files [glob -nocomplain ]') 
+    script.append(f'set tcl_files [glob -nocomplain {loc}]') 
     script.append(r'foreach ip_tcl ${tcl_files} { source ${ip_tcl} }')
 
   # instantiate IPs used in the RTL. Use "-nocomplain" in case no IP is used
