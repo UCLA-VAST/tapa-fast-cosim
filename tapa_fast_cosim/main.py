@@ -131,7 +131,7 @@ if __name__ == '__main__':
 
   # generate test bench RTL files
   os.system(f'mkdir -p {args.tb_output_dir}')
-  os.system(f'rm {args.tb_output_dir}/*.bin')
+  os.system(f'rm -f {args.tb_output_dir}/*.bin')
   open(f'{args.tb_output_dir}/tb.v', 'w').write(tb)
 
   for axi in axi_list:
