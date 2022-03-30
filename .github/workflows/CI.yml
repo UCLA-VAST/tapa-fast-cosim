@@ -1,0 +1,65 @@
+name: CI
+
+on: push
+
+jobs:
+  xosim:
+    if: github.event_name == 'push' && github.repository == 'UCLA-VAST/tapa-fast-cosim'
+
+    runs-on:
+      - self-hosted
+      - Linux
+      - xilinx-tools
+
+    strategy:
+      matrix:
+        xocl-version:
+          - 2020.2
+
+    env:
+      XILINX_HLS: /opt/tools/xilinx/Vitis_HLS/${{ matrix.xocl-version }}
+      XILINX_VITIS: /opt/tools/xilinx/Vitis/${{ matrix.xocl-version }}
+      XILINX_VIVADO: /opt/tools/xilinx/Vivado/${{ matrix.xocl-version }}
+
+    steps:
+      - name: Checkout myself
+        uses: actions/checkout@v1
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            faketime \
+            gcc-multilib \
+            libc6-dev-i386 \
+            libncurses5 \
+            libtinfo5 \
+            libxext6 \
+            unzip \
+            xilinx-u250-xdma-dev \
+            xilinx-u280-xdma-dev \
+            xrt \
+
+          sudo python3 -m pip install cmake
+
+          # Vivado doesn't like running concurrently for the first time.
+          (
+            source "${XILINX_VIVADO}"/settings64.sh
+            vivado -mode batch -nojournal -nolog
+          )
+      - name: Install myself
+        run: python3 -m pip install .
+      - name: Checkout TAPA
+        run: git clone https://github.com/UCLA-VAST/tapa
+      - name: Install TAPA
+        run: tapa/install.sh
+      - name: Test myself
+        working-directory: tapa/apps
+        run: |
+          for app in *; do
+            pushd "${app}"
+            cmake -S. -Bbuild
+            cmake --build build --target "${app}" "${app}-hw-xo" --parallel 2
+            make "${app}"-cosim -n | \
+              sed -n 's/--bitstream\(.*\)_emu\.xclbin/--bitstream\1.xo/p'
+            popd
+          done

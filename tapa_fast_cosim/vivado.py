@@ -11,12 +11,14 @@ def get_vivado_tcl(config: Dict, tb_rtl_path: str, save_waveform: bool):
   script.append(f'set ORIG_RTL_PATH "{tapa_hdl_path}"')
 
   for suffix in ('.v', '.sv'):
-    script.append(f'set rtl_files [glob -nocomplain ${{ORIG_RTL_PATH}}/*{suffix}]') 
-    script.append(f'if {{$rtl_files ne ""}} {{add_files -norecurse -scan_for_includes ${{rtl_files}} }}')
+    for loc in (f'${{ORIG_RTL_PATH}}/*{suffix}', f'${{ORIG_RTL_PATH}}/*/*{suffix}'):
+      script.append(f'set rtl_files [glob -nocomplain {loc}]') 
+      script.append(f'if {{$rtl_files ne ""}} {{add_files -norecurse -scan_for_includes ${{rtl_files}} }}')
 
   # instantiate IPs used in the RTL. Use "-nocomplain" in case no IP is used
-  script.append(r'set tcl_files [glob -nocomplain ${ORIG_RTL_PATH}/*.tcl]') 
-  script.append(r'foreach ip_tcl ${tcl_files} { source ${ip_tcl} }')
+  for loc in (r'${ORIG_RTL_PATH}/*.tcl', r'${ORIG_RTL_PATH}/*/*.tcl'):
+    script.append(r'set tcl_files [glob -nocomplain ]') 
+    script.append(r'foreach ip_tcl ${tcl_files} { source ${ip_tcl} }')
 
   # instantiate IPs used in the RTL. Use "-nocomplain" in case no IP is used
   script.append(r'set xci_ip_files [glob -nocomplain ${ORIG_RTL_PATH}/*/*.xci]') 
