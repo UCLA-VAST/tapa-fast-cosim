@@ -133,6 +133,7 @@ if __name__ == '__main__':
   os.system(f'mkdir -p {args.tb_output_dir}')
   os.system(f'rm -f {args.tb_output_dir}/*.bin')
   open(f'{args.tb_output_dir}/tb.v', 'w').write(tb)
+  open(f'{args.tb_output_dir}/fifo_srl_tb.v', 'w').write(get_srl_fifo_template())
 
   for axi in axi_list:
     source_data_path = config['axi_to_data_file'][axi.name]
