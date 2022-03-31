@@ -14,40 +14,12 @@ from .config_preprocess import preprocess_config
 logging.getLogger().setLevel(logging.INFO)
 
 
-def _check_s_axi_control_format(s_axi_control_comments: List[str]):
-  """
-  ensure that the assumptions about the s_axi_control still hold
-  """
-  keyword_groups = [
-    ['0x00', 'Control signals'],
-    ['0x04', 'Global Interrupt Enable Register'],
-    ['0x08', 'IP Interrupt Enable Register'],
-    ['0x0c', 'IP Interrupt Status Register'],
-  ]
-  for line in s_axi_control_comments:
-    for kw_group in keyword_groups:
-      assert any(k in line for k in kw_group) == all(k in line for k in kw_group), line
-
-  fixed_addresses = [
-    ['- ap_start', 'bit 0'],
-    ['- ap_done', 'bit 1'],
-    ['- ap_idle', 'bit 2'],
-    ['- ap_ready', 'bit 3'],
-    ['- auto_restart', 'bit 7'],
-  ]
-  ap_signal_beg = ([i for i, elem in enumerate(s_axi_control_comments) if '0x00' in elem])[0]
-  ap_signal_end = ([i for i, elem in enumerate(s_axi_control_comments) if '0x04' in elem])[0]
-  for line in s_axi_control_comments[ap_signal_beg: ap_signal_end]:
-    assert all(addr in line for reg, addr in fixed_addresses if reg in line )
-
-
 def parse_register_addr(ctrl_unit_path: str) -> Dict[str, List[str]]:
   """
   parse the comments in s_axi_control.v to get the register addresses for each argument
   """
   ctrl_unit = open(ctrl_unit_path, 'r').readlines()
   comments = [line for line in ctrl_unit if line.strip().startswith('//')]
-  _check_s_axi_control_format(comments)
 
   arg_to_reg_addrs = defaultdict(list)
   for line in comments:
