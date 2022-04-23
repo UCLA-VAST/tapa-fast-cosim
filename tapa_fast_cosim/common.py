@@ -4,4 +4,4 @@ class AXI:
     self.data_width = data_width
     self.addr_width = addr_width
 
-MAX_AXI_BRAM_ADDR_WIDTH = 16
+MAX_AXI_BRAM_ADDR_WIDTH = 18

@@ -1,3 +1,4 @@
+import logging
 import os
 
 from typing import *
@@ -360,7 +361,11 @@ endmodule
 
 
 def get_axi_ram_module(axi: AXI, input_data_path: str, c_array_size: int):
-  assert c_array_size < 2**MAX_AXI_BRAM_ADDR_WIDTH, 'cosim data size too large!'
+  if axi.data_width / 8 * c_array_size > 2**MAX_AXI_BRAM_ADDR_WIDTH:
+    logging.error('The current cosim data size is larger than the recommended threashold (2 MB per DDR/HBM). '
+                  'Option 1: reduce cosim data size. '
+                  'Option 2: increase the MAX_AXI_BRAM_ADDR_WIDTH constant in tapa_fast_cosim/common.py ')
+    exit(1)
 
   if input_data_path:
     assert os.path.exists(input_data_path)
