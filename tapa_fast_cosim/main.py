@@ -70,7 +70,7 @@ def get_cosim_tb(top_name: str, s_axi_control_path: str, axi_list: List[AXI], sc
 
   for axi in axi_list:
     tb += get_axi_ram_inst(axi) + '\n'
-  
+
   tb += get_s_axi_control() + '\n'
 
   tb += get_dut(top_name, axi_list) + '\n'
@@ -92,7 +92,7 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
   config = preprocess_config(args.config_path)
-  
+
   top_name = config['top_name']
   verilog_path = config['verilog_path']
   top_path = f'{verilog_path}/{top_name}.v'
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     c_array_size = config['axi_to_c_array_size'][axi.name]
     ram_module = get_axi_ram_module(axi, source_data_path, c_array_size)
     open(f'{args.tb_output_dir}/axi_ram_{axi.name}.v', 'w').write(ram_module)
-  
+
   # generate vivado script
   os.system(f'mkdir -p {args.tb_output_dir}/run')
   if args.save_waveform:

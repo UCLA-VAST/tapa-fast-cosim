@@ -102,7 +102,7 @@ def get_axi_ram_inst(axi_obj: AXI):
       .s_axi_rvalid  (axi_{axi_obj.name}_rvalid  ),
       .s_axi_rready  (axi_{axi_obj.name}_rready  ),
 
-      .dump_mem      (axi_ram_{axi_obj.name}_dump_mem) 
+      .dump_mem      (axi_ram_{axi_obj.name}_dump_mem)
   );
 
 '''
@@ -185,7 +185,7 @@ def get_s_axi_control():
     .if_write_ce (1'b1),
     .if_read_ce  (1'b1)
 
-  );  
+  );
 '''
 
 def get_dut(top_name, axi_list: List[AXI]):
@@ -267,7 +267,7 @@ def get_dut(top_name, axi_list: List[AXI]):
 
 
 def get_test_signals(
-    arg_to_reg_addrs: Dict[str, str], 
+    arg_to_reg_addrs: Dict[str, str],
     scalar_arg_to_val: Dict[str, str],
     axi_list: List[AXI]):
   dump_signal_init = '\n'.join(f'    axi_ram_{axi_obj.name}_dump_mem = 1\'b0;' for axi_obj in axi_list)
@@ -278,23 +278,23 @@ def get_test_signals(
 
   // clock
   always begin
-      ap_clk = 1'b1; 
-      #HALF_CLOCK_PERIOD; 
+      ap_clk = 1'b1;
+      #HALF_CLOCK_PERIOD;
       ap_clk = 1'b0;
-      #HALF_CLOCK_PERIOD; 
+      #HALF_CLOCK_PERIOD;
   end
 
   wire [31:0] REG_MASK_32_BIT = {{32{{1\'b1}}}};
   initial begin
-    s_axi_aw_write = 1'b0; 
-    s_axi_aw_din = 1'b0; 
-    s_axi_w_write = 1'b0; 
+    s_axi_aw_write = 1'b0;
+    s_axi_aw_din = 1'b0;
+    s_axi_w_write = 1'b0;
     s_axi_w_din = 1'b0;
-{dump_signal_init} 
+{dump_signal_init}
     s_axi_control_arvalid = 1'b0;
     ap_rst_n = 1'b0;
-    
-    #(CLOCK_PERIOD*1000);  
+
+    #(CLOCK_PERIOD*1000);
     ap_rst_n = 1'b1;
     #(CLOCK_PERIOD*100);
 
@@ -314,7 +314,7 @@ def get_test_signals(
     s_axi_aw_write = 0; s_axi_w_write = 0; #CLOCK_PERIOD;
 
     // start polling ap_done
-    #(CLOCK_PERIOD*1000);  
+    #(CLOCK_PERIOD*1000);
     s_axi_control_arvalid = 1'b1 & s_axi_control_arready;
 
   end
@@ -335,7 +335,7 @@ def get_test_signals(
         end
       end
     end
-  end  
+  end
 '''
 
   return test
@@ -343,7 +343,7 @@ def get_test_signals(
 
 def get_begin():
   return f'''
-`timescale 1 ns / 1 ps 
+`timescale 1 ns / 1 ps
 
 module test();
 
@@ -764,7 +764,7 @@ always @(posedge clk) begin
 end
 
 endmodule
-  
+
 '''
 
 
