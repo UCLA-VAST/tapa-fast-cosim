@@ -5,13 +5,23 @@ import os
 import re
 
 from collections import defaultdict
+from pkg_resources import get_distribution
 from typing import *
+
 from .common import AXI
 from .templates import *
 from .vivado import get_vivado_tcl
 from .config_preprocess import preprocess_config
 
-logging.getLogger().setLevel(logging.INFO)
+[logging.root.removeHandler(handler) for handler in logging.root.handlers]
+logging.basicConfig(
+    level=logging.INFO,
+    format=
+    '[%(levelname)s:%(name)s:%(lineno)d] %(message)s',
+    datefmt='%m%d %H:%M:%S',
+)
+
+_logger = logging.getLogger().getChild(__name__)
 
 
 def parse_register_addr(ctrl_unit_path: str) -> Dict[str, List[str]]:
@@ -91,6 +101,9 @@ if __name__ == '__main__':
   parser.add_argument('--save_waveform', action='store_true')
   args = parser.parse_args()
 
+  __version__ = get_distribution('tapa_fast_cosim').version
+  _logger.info('TAPA fast cosim version: %s', __version__)
+
   config = preprocess_config(args.config_path, args.tb_output_dir)
 
   top_name = config['top_name']
@@ -116,9 +129,9 @@ if __name__ == '__main__':
   # generate vivado script
   os.system(f'mkdir -p {args.tb_output_dir}/run')
   if args.save_waveform:
-    logging.warning(f'Waveform will be saved at {args.tb_output_dir}/run/vivado/tapa-fast-cosim/tapa-fast-cosim.sim/sim_1/behav/xsim/wave.wdb')
+    _logger.warning(f'Waveform will be saved at {args.tb_output_dir}/run/vivado/tapa-fast-cosim/tapa-fast-cosim.sim/sim_1/behav/xsim/wave.wdb')
   else:
-    logging.warning(f'Waveform is not saved. Use --save_waveform to save the simulation waveform.')
+    _logger.warning(f'Waveform is not saved. Use --save_waveform to save the simulation waveform.')
 
   vivado_script = get_vivado_tcl(config, args.tb_output_dir, args.save_waveform)
 
@@ -128,6 +141,6 @@ if __name__ == '__main__':
   disable_debug = '' if args.print_debug_info else ' | grep -v DEBUG'
   command = f'cd {args.tb_output_dir}/run/; vivado -mode batch -source run_cosim.tcl {disable_debug}'
   if args.launch_simulation:
-    logging.info(f'Vivado command: {command}')
-    logging.info(f'Starting Vivado...')
+    _logger.info(f'Vivado command: {command}')
+    _logger.info(f'Starting Vivado...')
     os.system(command)

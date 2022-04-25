@@ -3,10 +3,11 @@ import json
 import logging
 import os
 import re
-import tempfile
 
 from typing import *
 from .common import MAX_AXI_BRAM_ADDR_WIDTH
+
+_logger = logging.getLogger().getChild(__name__)
 
 
 def _update_relative_path(config, config_path):
@@ -29,8 +30,8 @@ def _data_size_check(axi_to_c_array_size):
   """
   for axi, c_array_size in axi_to_c_array_size.items():
     if c_array_size > 2 ** MAX_AXI_BRAM_ADDR_WIDTH:
-      logging.critical(f'Data size of {axi} is over 1 million. Consider using smaller testsets.')
-      logging.critical(f'If you insist, increase the value of tapa_fast_cosim/common/MAX_AXI_BRAM_ADDR_WIDTH. Doing so may affect waveform dumping.')
+      _logger.critical(f'Data size of {axi} is over 1 million. Consider using smaller testsets.')
+      _logger.critical(f'If you insist, increase the value of tapa_fast_cosim/common/MAX_AXI_BRAM_ADDR_WIDTH. Doing so may affect waveform dumping.')
       exit
 
 
@@ -50,7 +51,7 @@ def _parse_xo_update_config(config: Dict, tb_output_dir: str) -> None:
   try:
     config['verilog_path'] = glob.glob(f'{tmp_path}/ip_repo/*/src')[0]
   except:
-    logging.error(f'Fail to extract the xo. Please provide a correct TAPA XO. Note that Vitis XOs are not supported')
+    _logger.error(f'Fail to extract the xo. Please provide a correct TAPA XO. Note that Vitis XOs are not supported')
     exit(1)
 
   # extract other kernel information

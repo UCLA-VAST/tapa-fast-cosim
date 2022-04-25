@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='tapa-fast-cosim',
-    version='0.0.1',
+    version='0.0.20220424.1',
     description='',
     long_description='Fast cosim of HLS-generated RTL',
     long_description_content_type='text/markdown',
