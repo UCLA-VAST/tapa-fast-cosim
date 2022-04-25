@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+import tempfile
 
 from typing import *
 from .common import MAX_AXI_BRAM_ADDR_WIDTH
@@ -33,13 +34,13 @@ def _data_size_check(axi_to_c_array_size):
       exit
 
 
-def _parse_xo_update_config(config: Dict) -> None:
+def _parse_xo_update_config(config: Dict, tb_output_dir: str) -> None:
   """
   Only supports TAPA xo. Vitis XO has different hierarchy and RTL coding style
   """
   xo_path = config['xo_path']
 
-  tmp_path = f'/tmp/tapa_fast_cosim_{os.getuid()}/'
+  tmp_path = f'{tb_output_dir}/tapa_fast_cosim_{os.getuid()}/'
   os.system(f'rm -rf {tmp_path}/')
   os.system(f'mkdir -p {tmp_path}/')
   os.system(f'cp {xo_path} {tmp_path}/target.xo')
@@ -74,11 +75,11 @@ def _check_scalar_val_format(config: Dict) -> None:
     assert len(val) <= 2 + 16, f'scalar value should be at most 64 bit. Violation: {scalar}: {val}'
 
 
-def preprocess_config(config_path: str) -> Dict:
+def preprocess_config(config_path: str, tb_output_dir: str) -> Dict:
   config = json.loads(open(config_path, 'r').read())
   _update_relative_path(config, config_path)
   _data_size_check(config['axi_to_c_array_size'])
-  _parse_xo_update_config(config)
+  _parse_xo_update_config(config, tb_output_dir)
   _check_scalar_val_format(config)
 
   return config

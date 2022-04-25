@@ -91,7 +91,7 @@ if __name__ == '__main__':
   parser.add_argument('--save_waveform', action='store_true')
   args = parser.parse_args()
 
-  config = preprocess_config(args.config_path)
+  config = preprocess_config(args.config_path, args.tb_output_dir)
 
   top_name = config['top_name']
   verilog_path = config['verilog_path']
