@@ -99,6 +99,7 @@ if __name__ == '__main__':
   parser.add_argument('--launch_simulation', action='store_true')
   parser.add_argument('--print_debug_info', action='store_true')
   parser.add_argument('--save_waveform', action='store_true')
+  parser.add_argument('--start_gui', action='store_true')
   args = parser.parse_args()
 
   __version__ = get_distribution('tapa_fast_cosim').version
@@ -139,7 +140,8 @@ if __name__ == '__main__':
 
   # lanuch simulation
   disable_debug = '' if args.print_debug_info else ' | grep -v DEBUG'
-  command = f'cd {args.tb_output_dir}/run/; vivado -mode batch -source run_cosim.tcl {disable_debug}'
+  mode = 'gui' if args.start_gui else 'batch'
+  command = f'cd {args.tb_output_dir}/run/; vivado -mode {mode} -source run_cosim.tcl {disable_debug}'
   if args.launch_simulation:
     _logger.info(f'Vivado command: {command}')
     _logger.info(f'Starting Vivado...')
