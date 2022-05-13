@@ -92,6 +92,22 @@ def get_cosim_tb(top_name: str, s_axi_control_path: str, axi_list: List[AXI], sc
   return tb
 
 
+def set_default_nettype(verilog_path):
+  """
+  Sometimes the HLS-generated RTL will directly assign constants to IO ports
+  But Vivado does not allow this behaviour. We need to set the `default_nettype
+  to wire to bypass this issue.
+  """
+  _logger.info('append `default_nettype wire to every RTL file')
+  for file in os.listdir(verilog_path):
+    if file.endswith('.v') or file.endswith('.sv'):
+      abs_path = os.path.join(verilog_path, file)
+      with open(abs_path, 'r+') as f:
+          content = f.read()
+          f.seek(0, 0)
+          f.write('`default_nettype wire\n' + content)
+
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--config_path', type=str, required=True)
@@ -111,6 +127,9 @@ if __name__ == '__main__':
   verilog_path = config['verilog_path']
   top_path = f'{verilog_path}/{top_name}.v'
   ctrl_path = f'{verilog_path}/{top_name}_control_s_axi.v'
+
+  # add default nettype to all rtl
+  set_default_nettype(verilog_path)
 
   axi_list = parse_m_axi_interfaces(top_path)
   tb = get_cosim_tb(top_name, ctrl_path, axi_list, config['scalar_to_val'])
