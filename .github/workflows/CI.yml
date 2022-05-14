@@ -56,10 +56,12 @@ jobs:
         working-directory: tapa/apps
         run: |
           for app in *; do
-            pushd "${app}"
-            cmake -S. -Bbuild
-            cmake --build build --target "${app}" "${app}-hw-xo" --parallel 2
-            make "${app}"-cosim -n | \
-              sed -n 's/--bitstream\(.*\)_emu\.xclbin/--bitstream\1.xo/p'
-            popd
+            if [ -d "${app}" ]; then
+              pushd "${app}"
+              cmake -S. -Bbuild
+              cmake --build build --target "${app}" "${app}-hw-xo" --parallel 2
+              make "${app}"-cosim -n | \
+                sed -n 's/--bitstream\(.*\)_emu\.xclbin/--bitstream\1.xo/p'
+              popd
+            fi
           done
