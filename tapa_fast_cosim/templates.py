@@ -364,9 +364,11 @@ endmodule
 
 def get_axi_ram_module(axi: AXI, input_data_path: str, c_array_size: int):
   if axi.data_width / 8 * c_array_size > 2**MAX_AXI_BRAM_ADDR_WIDTH:
-    _logger.error('The current cosim data size is larger than the recommended threashold (2 MB per DDR/HBM). '
+    _logger.error('The current cosim data size is larger than the recommended threashold (1 MB per DDR/HBM). '
                   'Option 1: reduce cosim data size. '
-                  'Option 2: increase the MAX_AXI_BRAM_ADDR_WIDTH constant in tapa_fast_cosim/common.py ')
+                  'Option 2: increase the MAX_AXI_BRAM_ADDR_WIDTH constant in tapa_fast_cosim/common.py. '
+                  'To do that, clone the https://github.com/UCLA-VAST/tapa-fast-cosim.git repo and '
+                  'pip install it in --editable mode')
     exit(1)
 
   if input_data_path:

@@ -23,18 +23,6 @@ def _update_relative_path(config, config_path):
       config['axi_to_data_file'][axi_name] = f'{config_dir}/{curr_path}'
 
 
-def _data_size_check(axi_to_c_array_size):
-  """
-  The AXI memory model used is hard coded to have an address width of 16 bits
-  Using more memory is not encouraged but possible.
-  """
-  for axi, c_array_size in axi_to_c_array_size.items():
-    if c_array_size > 2 ** MAX_AXI_BRAM_ADDR_WIDTH:
-      _logger.critical(f'Data size of {axi} is over 1 million. Consider using smaller testsets.')
-      _logger.critical(f'If you insist, increase the value of tapa_fast_cosim/common/MAX_AXI_BRAM_ADDR_WIDTH. Doing so may affect waveform dumping.')
-      exit
-
-
 def _parse_xo_update_config(config: Dict, tb_output_dir: str) -> None:
   """
   Only supports TAPA xo. Vitis XO has different hierarchy and RTL coding style
@@ -79,7 +67,6 @@ def _check_scalar_val_format(config: Dict) -> None:
 def preprocess_config(config_path: str, tb_output_dir: str) -> Dict:
   config = json.loads(open(config_path, 'r').read())
   _update_relative_path(config, config_path)
-  _data_size_check(config['axi_to_c_array_size'])
   _parse_xo_update_config(config, tb_output_dir)
   _check_scalar_val_format(config)
 
