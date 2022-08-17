@@ -814,21 +814,21 @@ module fifo_srl #(
   assign shift_reg_data = if_din;
   assign if_dout = shift_reg_q;
 
-  assign shift_reg_addr = out_ptr[ADDR_WIDTH] == 1'b0 ? out_ptr[ADDR_WIDTH-1:0] : {{ADDR_WIDTH{{1'b0}}}};
+  assign shift_reg_addr = out_ptr[ADDR_WIDTH] == 1'b0 ? out_ptr[ADDR_WIDTH-1:0] : {ADDR_WIDTH{1'b0}};
   assign shift_reg_ce = (if_write & if_write_ce) & internal_full_n;
 
   assign shift_reg_q = mem[shift_reg_addr];
 
   always @(posedge clk) begin
     if (reset) begin
-      out_ptr <= ~{{ADDR_WIDTH+1{{1'b0}}}};
+      out_ptr <= ~{ADDR_WIDTH+1{1'b0}};
       internal_empty_n <= 1'b0;
       internal_full_n <= 1'b1;
     end else begin
       if (((if_read && if_read_ce) && internal_empty_n) &&
           (!(if_write && if_write_ce) || !internal_full_n)) begin
         out_ptr <= out_ptr - 1'b1;
-        if (out_ptr == {{(ADDR_WIDTH+1){{1'b0}}}})
+        if (out_ptr == {(ADDR_WIDTH+1){1'b0}})
           internal_empty_n <= 1'b0;
         internal_full_n <= 1'b1;
       end
@@ -837,7 +837,7 @@ module fifo_srl #(
       begin
         out_ptr <= out_ptr + 1'b1;
         internal_empty_n <= 1'b1;
-        if (out_ptr == DEPTH - {{{{(ADDR_WIDTH-1){{1'b0}}}}, 2'd2}})
+        if (out_ptr == DEPTH - {{(ADDR_WIDTH-1){1'b0}}, 2'd2})
           internal_full_n <= 1'b0;
       end
     end
