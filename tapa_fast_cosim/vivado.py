@@ -10,7 +10,7 @@ def get_vivado_tcl(config: Dict, tb_rtl_path: str, save_waveform: bool):
   # read in the original RTLs by HLS
   script.append(f'set ORIG_RTL_PATH "{tapa_hdl_path}"')
 
-  for suffix in ('.v', '.sv'):
+  for suffix in ('.v', '.sv', '.dat'):
     for loc in (f'${{ORIG_RTL_PATH}}/*{suffix}', f'${{ORIG_RTL_PATH}}/*/*{suffix}'):
       script.append(f'set rtl_files [glob -nocomplain {loc}]')
       script.append(f'if {{$rtl_files ne ""}} {{add_files -norecurse -scan_for_includes ${{rtl_files}} }}')
