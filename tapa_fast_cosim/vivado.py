@@ -5,7 +5,7 @@ def get_vivado_tcl(config: Dict, tb_rtl_path: str, save_waveform: bool):
   tapa_hdl_path = config['verilog_path']
 
   script = []
-  script.append(f'create_project -force tapa-fast-cosim ./vivado -part xc7vx485tffg1157-1')
+  script.append(f'create_project -force tapa-fast-cosim ./vivado')
 
   # read in the original RTLs by HLS
   script.append(f'set ORIG_RTL_PATH "{tapa_hdl_path}"')
