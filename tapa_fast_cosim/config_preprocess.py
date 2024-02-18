@@ -55,7 +55,7 @@ def _parse_xo_update_config(config: Dict, tb_output_dir: str) -> None:
   # update scalar arguments
   change_id_to_name = lambda id_to_val: {id_to_name[int(scalar_arg_id)]: val for scalar_arg_id, val in id_to_val.items()}
   for entry in ('scalar_to_val', 'axi_to_data_file', 'axi_to_c_array_size'):
-    config[entry] = change_id_to_name(config[entry])
+    config[entry] = change_id_to_name(config[entry] or {})
 
 
 def _check_scalar_val_format(config: Dict) -> None:
