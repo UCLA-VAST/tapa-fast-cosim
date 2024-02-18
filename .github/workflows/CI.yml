@@ -41,16 +41,21 @@ jobs:
         run: git clone https://github.com/UCLA-VAST/tapa
       - name: Install TAPA
         run: tapa/install.sh
-      - name: Test myself
+      - name: Patch TAPA to run xosim
         working-directory: tapa/apps
         run: |
           for app in *; do
-            if [ -d "${app}" ]; then
-              pushd "${app}"
-              cmake -S. -Bbuild
-              cmake --build build --target "${app}" "${app}-hw-xo" --parallel 2
-              make "${app}"-cosim -n | \
-                sed -n 's/--bitstream\(.*\)_emu\.xclbin/--bitstream\1.xo/p'
-              popd
-            fi
+            [[ ! -d "${app}" ]] && continue
+            sed -i 's/${hw_emu_xclbin}/'"${app}-hw-xo/g" \
+              "${app}"/CMakeLists.txt
+            cmake -S"${app}" -B"${app}"/build
           done
+      - name: Test myself
+        working-directory: tapa
+        run: |
+          source ${XILINX_VITIS}/settings64.sh
+          {
+            printf 'all:\n'
+            find apps -mindepth 1 -maxdepth 1 -type d \
+              -printf '\t+$(MAKE) -C apps/%f/build %f-cosim\n'
+          } | make -f -
